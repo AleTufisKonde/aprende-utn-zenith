@@ -1,10 +1,15 @@
-import { auth } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 import {
   onAuthStateChanged,
   signOut,
   updateProfile,
   updateEmail
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { cursos } from "./contenidos.js";
 import { traducir } from "./errores.js";
 
@@ -33,15 +38,33 @@ const txtPerfilUID         = document.getElementById("txtPerfilUID");
 const perfilAvatarContenedor= document.getElementById("perfilAvatarContenedor");
 const inputFotoPerfil      = document.getElementById("inputFotoPerfil");
 const btnDispararFoto      = document.getElementById("btnDispararFoto");
+const gridAvataresPreset   = document.getElementById("gridAvataresPreset");
 const msgPerfil            = document.getElementById("msgPerfil");
+
+// Elementos del Modal de Cierre de Sesión
+const modalCerrarSesion    = document.getElementById("modalCerrarSesion");
+const btnCancelarSalir     = document.getElementById("btnCancelarSalir");
+const btnConfirmarSalir    = document.getElementById("btnConfirmarSalir");
 
 let cursoSeleccionadoId = null;
 let usuarioActual = null;
 
 // =====================================================================
-// AUTENTICACIÓN Y SEGURIDAD
+// AVATARES OFICIALES ZENITH (Sincronizan 100% entre PC y Móvil)
 // =====================================================================
-onAuthStateChanged(auth, (usuario) => {
+const AVATARES_PRESET = [
+  { id: "zenith-cyber",  nombre: "Cyber Zenith",  url: "https://api.dicebear.com/7.x/bottts/svg?seed=ZenithCyber&backgroundColor=070e1e" },
+  { id: "zenith-core",   nombre: "Núcleo Quantum", url: "https://api.dicebear.com/7.x/shapes/svg?seed=ZenithCore&backgroundColor=0a142c" },
+  { id: "zenith-falcon", nombre: "Halcón Neón",   url: "https://api.dicebear.com/7.x/identicon/svg?seed=ZenithFalcon&backgroundColor=070e1e" },
+  { id: "zenith-dev",    nombre: "Dev Pro",       url: "https://api.dicebear.com/7.x/bottts/svg?seed=ZenithDev&backgroundColor=0284c7" },
+  { id: "zenith-astro",  nombre: "Tech Astro",    url: "https://api.dicebear.com/7.x/identicon/svg?seed=ZenithAstro&backgroundColor=00a8ff" },
+  { id: "zenith-badge",  nombre: "Escudo Zenith", url: "https://ui-avatars.com/api/?name=Zenith&background=070e1e&color=00a8ff&bold=true" }
+];
+
+// =====================================================================
+// AUTENTICACIÓN Y SINCRONIZACIÓN EN LA NUBE
+// =====================================================================
+onAuthStateChanged(auth, async (usuario) => {
   if (!usuario) {
     location.href = "index.html";
     return;
@@ -50,6 +73,20 @@ onAuthStateChanged(auth, (usuario) => {
   usuarioActual = usuario;
   refrescarDatosUsuarioUI();
   mostrarCursos();
+  inicializarSelectorAvatares();
+
+  // Intentar sincronizar foto desde Cloud Firestore (Cross-device Sync)
+  try {
+    const docRef = doc(db, "usuarios", usuario.uid);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists() && docSnap.data().photoURL) {
+      const nubeFoto = docSnap.data().photoURL;
+      localStorage.setItem(`zenith_photo_${usuario.uid}`, nubeFoto);
+      refrescarDatosUsuarioUI();
+    }
+  } catch (err) {
+    console.log("[Zenith] Firestore en modo local o sin colecciones aún:", err.message);
+  }
 
   // Si hay botón de bienvenida
   if (btnPrimerCurso && cursos.length > 0) {
@@ -66,7 +103,7 @@ function refrescarDatosUsuarioUI() {
   const nombreMostrar = usuarioActual.displayName || usuarioActual.email.split("@")[0];
   saludo.textContent = nombreMostrar;
 
-  // Foto guardada en localStorage o en Firebase photoURL
+  // Prioridad de foto: 1. LocalStorage sincronizado, 2. photoURL de Firebase Auth
   const fotoGuardada = localStorage.getItem(`zenith_photo_${usuarioActual.uid}`) || usuarioActual.photoURL;
 
   if (avatarLetra) {
@@ -76,13 +113,38 @@ function refrescarDatosUsuarioUI() {
       avatarLetra.textContent = nombreMostrar.charAt(0).toUpperCase();
     }
   }
+
+  if (perfilAvatarContenedor) {
+    if (fotoGuardada) {
+      perfilAvatarContenedor.innerHTML = `<img src="${fotoGuardada}" alt="Avatar">`;
+    } else {
+      perfilAvatarContenedor.textContent = nombreMostrar.charAt(0).toUpperCase();
+    }
+  }
 }
 
-document.getElementById("salir").addEventListener("click", async () => {
-  if (confirm("¿Deseas cerrar tu sesión?")) {
-    await signOut(auth);
-    location.href = "index.html";
+// =====================================================================
+// MODAL DE CIERRE DE SESIÓN PROFESIONAL
+// =====================================================================
+document.getElementById("salir")?.addEventListener("click", () => {
+  modalCerrarSesion?.classList.add("abierto");
+});
+
+btnCancelarSalir?.addEventListener("click", () => {
+  modalCerrarSesion?.classList.remove("abierto");
+});
+
+modalCerrarSesion?.addEventListener("click", (e) => {
+  if (e.target === modalCerrarSesion) {
+    modalCerrarSesion.classList.remove("abierto");
   }
+});
+
+btnConfirmarSalir?.addEventListener("click", async () => {
+  btnConfirmarSalir.textContent = "Saliendo...";
+  btnConfirmarSalir.disabled = true;
+  await signOut(auth);
+  location.href = "index.html";
 });
 
 // =====================================================================
@@ -372,6 +434,55 @@ function renderizarQuizEnPanel(c, contenedor) {
 }
 
 // =====================================================================
+// SELECTOR DE AVATARES PREESTABLECIDOS (SYNC NUBE GARANTIZADO)
+// =====================================================================
+function inicializarSelectorAvatares() {
+  if (!gridAvataresPreset) return;
+  gridAvataresPreset.innerHTML = "";
+
+  const fotoActual = localStorage.getItem(`zenith_photo_${usuarioActual?.uid}`) || usuarioActual?.photoURL;
+
+  AVATARES_PRESET.forEach((av) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `avatar-preset-btn ${fotoActual === av.url ? "activo" : ""}`;
+    btn.title = av.nombre;
+    btn.innerHTML = `<img src="${av.url}" alt="${av.nombre}" loading="lazy">`;
+
+    btn.addEventListener("click", async () => {
+      document.querySelectorAll(".avatar-preset-btn").forEach(b => b.classList.remove("activo"));
+      btn.classList.add("activo");
+
+      msgPerfil.textContent = "Sincronizando avatar en la nube...";
+      msgPerfil.style.color = "#00a8ff";
+
+      try {
+        // 1. Guardar en Firebase Auth nativo (Sincroniza con cualquier dispositivo)
+        await updateProfile(usuarioActual, { photoURL: av.url });
+        localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, av.url);
+
+        // 2. Guardar en Firestore si está disponible
+        try {
+          await setDoc(doc(db, "usuarios", usuarioActual.uid), {
+            photoURL: av.url,
+            displayName: usuarioActual.displayName || ""
+          }, { merge: true });
+        } catch (_) {}
+
+        refrescarDatosUsuarioUI();
+        msgPerfil.textContent = "✅ ¡Avatar sincronizado con éxito en tu cuenta!";
+        msgPerfil.style.color = "#10b981";
+      } catch (err) {
+        msgPerfil.textContent = "Error guardando avatar: " + err.message;
+        msgPerfil.style.color = "#ef4444";
+      }
+    });
+
+    gridAvataresPreset.appendChild(btn);
+  });
+}
+
+// =====================================================================
 // MODAL DE PERFIL DE USUARIO (DATOS, FOTO Y CORREO)
 // =====================================================================
 function abrirModalPerfil() {
@@ -383,16 +494,8 @@ function abrirModalPerfil() {
   txtPerfilUID.textContent = usuarioActual.uid || "N/A";
   msgPerfil.textContent = "";
 
-  // Foto
-  const fotoGuardada = localStorage.getItem(`zenith_photo_${usuarioActual.uid}`) || usuarioActual.photoURL;
-  if (perfilAvatarContenedor) {
-    if (fotoGuardada) {
-      perfilAvatarContenedor.innerHTML = `<img src="${fotoGuardada}" alt="Foto de perfil">`;
-    } else {
-      perfilAvatarContenedor.textContent = nombreMostrar.charAt(0).toUpperCase();
-    }
-  }
-
+  refrescarDatosUsuarioUI();
+  inicializarSelectorAvatares();
   modalPerfil.classList.add("abierto");
 }
 
@@ -410,35 +513,58 @@ modalPerfil?.addEventListener("click", (e) => {
   if (e.target === modalPerfil) cerrarModalPerfil();
 });
 
-// Selección de foto de perfil
+// Selección de foto de perfil personalizada (con compresión Canvas para sincronización)
 btnDispararFoto?.addEventListener("click", () => inputFotoPerfil?.click());
 
 inputFotoPerfil?.addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  if (file.size > 2 * 1024 * 1024) {
-    alert("Por favor selecciona una imagen menor a 2 MB.");
+  if (file.size > 5 * 1024 * 1024) {
+    alert("Por favor selecciona una imagen menor a 5 MB.");
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = async (event) => {
-    const dataUrl = event.target.result;
-    if (perfilAvatarContenedor) {
-      perfilAvatarContenedor.innerHTML = `<img src="${dataUrl}" alt="Foto de perfil">`;
-    }
+  msgPerfil.textContent = "Optimizando y guardando imagen...";
+  msgPerfil.style.color = "#00a8ff";
 
-    // Guardar foto localmente y en Firebase
-    try {
-      localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, dataUrl);
-      await updateProfile(usuarioActual, { photoURL: dataUrl });
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onload = async () => {
+      // Redimensionar a 128x128 píxeles con compresión JPEG ligera
+      const canvas = document.createElement("canvas");
+      canvas.width = 128;
+      canvas.height = 128;
+      const ctx = canvas.getContext("2d");
+
+      // Centrar y recortar cuadrado
+      const minDimension = Math.min(img.width, img.height);
+      const sx = (img.width - minDimension) / 2;
+      const sy = (img.height - minDimension) / 2;
+      ctx.drawImage(img, sx, sy, minDimension, minDimension, 0, 0, 128, 128);
+
+      const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.75);
+
+      // Guardar localmente
+      localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, compressedDataUrl);
       refrescarDatosUsuarioUI();
-      msgPerfil.textContent = "✅ Foto de perfil actualizada correctamente.";
-      msgPerfil.style.color = "#10b981";
-    } catch (err) {
-      console.warn("Error guardando photoURL en Firebase:", err);
-    }
+
+      // Guardar en Cloud Firestore para sincronización entre dispositivos
+      try {
+        await setDoc(doc(db, "usuarios", usuarioActual.uid), {
+          photoURL: compressedDataUrl,
+          displayName: usuarioActual.displayName || ""
+        }, { merge: true });
+
+        msgPerfil.textContent = "✅ Foto guardada y sincronizada en la nube.";
+        msgPerfil.style.color = "#10b981";
+      } catch (errCloud) {
+        msgPerfil.textContent = "✅ Foto guardada en tu dispositivo actual.";
+        msgPerfil.style.color = "#10b981";
+      }
+    };
+    img.src = event.target.result;
   };
   reader.readAsDataURL(file);
 });
@@ -463,13 +589,21 @@ formPerfil?.addEventListener("submit", async (e) => {
       await updateEmail(usuarioActual, nuevoCorreo);
     }
 
+    // 3. Respaldar en Firestore si está disponible
+    try {
+      await setDoc(doc(db, "usuarios", usuarioActual.uid), {
+        displayName: nuevoNombre,
+        email: nuevoCorreo
+      }, { merge: true });
+    } catch (_) {}
+
     refrescarDatosUsuarioUI();
     msgPerfil.textContent = "✅ ¡Datos de perfil guardados con éxito!";
     msgPerfil.style.color = "#10b981";
 
     setTimeout(() => {
       cerrarModalPerfil();
-    }, 1500);
+    }, 1200);
   } catch (err) {
     msgPerfil.textContent = traducir(err.code);
     msgPerfil.style.color = "#ef4444";

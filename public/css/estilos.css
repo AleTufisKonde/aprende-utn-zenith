@@ -1626,6 +1626,159 @@ input::placeholder {
 }
 
 /* =====================================================================
+   MODAL DE CIERRE DE SESIÓN PROFESIONAL ZENITH
+   ===================================================================== */
+.modal-logout-card {
+  max-width: 420px;
+  text-align: center;
+  padding: 2.25rem 2rem;
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid rgba(0, 168, 255, 0.4);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 168, 255, 0.25);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.logout-icon-wrap {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.25rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 2px solid rgba(239, 68, 68, 0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.2);
+}
+
+.modal-logout-card h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--navy-deep);
+  margin-bottom: 0.5rem;
+}
+
+.modal-logout-card p {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin-bottom: 1.75rem;
+}
+
+.logout-acciones {
+  display: flex;
+  gap: 0.85rem;
+}
+
+.btn-logout-cancelar {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-logout-cancelar:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.btn-logout-confirmar {
+  flex: 1;
+  padding: 0.8rem 1rem;
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  border: none;
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+.btn-logout-confirmar:hover {
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.45);
+}
+
+/* =====================================================================
+   GALERÍA DE AVATARES SINCRONIZADOS EN LA NUBE (ZENITH PRESETS)
+   ===================================================================== */
+.avatares-preset-seccion {
+  width: 100%;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--border);
+}
+
+.avatares-preset-titulo {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.badge-cloud-sync {
+  font-size: 0.7rem;
+  background: var(--zenith-tint);
+  color: var(--zenith-blue);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 800;
+}
+
+.avatares-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+}
+
+.avatar-preset-btn {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #070e1e;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  overflow: hidden;
+  padding: 2px;
+  transition: var(--transition);
+  position: relative;
+}
+
+.avatar-preset-btn img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-preset-btn:hover {
+  border-color: var(--zenith-cyan);
+  transform: scale(1.12);
+  box-shadow: 0 0 12px rgba(0, 168, 255, 0.5);
+}
+
+.avatar-preset-btn.activo {
+  border-color: var(--zenith-cyan);
+  box-shadow: 0 0 15px rgba(0, 168, 255, 0.8);
+  transform: scale(1.08);
+}
+
+/* =====================================================================
    RESPONSIVIDAD Y DESKTOP (BREAKPOINTS)
    ===================================================================== */
 @media (min-width: 860px) {

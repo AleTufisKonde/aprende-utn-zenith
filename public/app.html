@@ -152,8 +152,19 @@
         </div>
         <input type="file" id="inputFotoPerfil" accept="image/*" hidden>
         <button type="button" id="btnDispararFoto" class="btn-cambiar-foto">
-          📷 Cambiar foto de perfil
+          📷 Subir foto desde dispositivo
         </button>
+
+        <!-- Galería de Avatares Oficiales Zenith (Sincronizan 100% entre PC y Móvil) -->
+        <div class="avatares-preset-seccion">
+          <div class="avatares-preset-titulo">
+            <span>Avatares Oficiales ZENITH</span>
+            <span class="badge-cloud-sync">☁️ Sync en la Nube</span>
+          </div>
+          <div class="avatares-preset-grid" id="gridAvataresPreset">
+            <!-- Botones de avatar inyectados por JS -->
+          </div>
+        </div>
       </div>
 
       <form id="formPerfil">
@@ -219,6 +230,25 @@
         </div>
       </div>
       <button type="button" class="btn-submit" onclick="cerrarModalInstalacion()">¡Entendido!</button>
+    </div>
+  </div>
+
+  <!-- MODAL DE CIERRE DE SESIÓN PROFESIONAL ZENITH -->
+  <div id="modalCerrarSesion" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="logoutTitulo">
+    <div class="modal-card modal-logout-card">
+      <div class="logout-icon-wrap">
+        <span>🚪</span>
+      </div>
+      <h3 id="logoutTitulo">¿Cerrar Sesión?</h3>
+      <p>Estás a punto de salir de <strong>Aprende UTN</strong>. Tu progreso de estudio y calificaciones de exámenes están guardados de forma segura.</p>
+      <div class="logout-acciones">
+        <button type="button" id="btnCancelarSalir" class="btn-logout-cancelar">
+          Cancelar
+        </button>
+        <button type="button" id="btnConfirmarSalir" class="btn-logout-confirmar">
+          Sí, cerrar sesión
+        </button>
+      </div>
     </div>
   </div>
 

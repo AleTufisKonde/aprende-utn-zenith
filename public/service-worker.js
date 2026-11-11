@@ -1,4 +1,4 @@
-const VERSION = "v5";   // Versión actualizada Zenith con Catálogo Completo
+const VERSION = "v6";   // Versión actualizada Zenith con Sync de Fotos y Logout Pro
 const CACHE   = "aprende-utn-zenith-" + VERSION;
 
 const ARCHIVOS = [
