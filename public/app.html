@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1128">
+  <meta name="description" content="Plataforma educativa PWA - Desarrollada por el Equipo ZENITH para Nivel Superior">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icons/favicon.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/estilos.css">
+  <title>Aprende UTN — Equipo ZENITH</title>
+</head>
+<body>
+
+  <!-- Barra de Navegación Superior -->
+  <header class="header-app">
+    <div class="header-contenedor">
+      
+      <div class="header-izquierda">
+        <!-- Botón menú móvil (hamburguesa) -->
+        <button id="btnMenuToggle" class="btn-menu-toggle" type="button" aria-label="Abrir catálogo de cursos">
+          ☰
+        </button>
+
+        <a href="app.html" class="header-logo">
+          <img src="icons/logo-zenith.png" alt="Logo Zenith" class="header-logo-zenith">
+          <span class="header-logo-texto">Aprende UTN</span>
+          <span class="header-logo-badge">ZENITH</span>
+        </a>
+      </div>
+
+      <div class="header-derecha">
+        <!-- Botón de Instalación PWA (Estilo Zenith Neón) -->
+        <button id="btnInstalarHeader" class="btn-instalar-header" type="button" onclick="abrirInstalacion()" title="Instalar aplicación en tu dispositivo">
+          <span class="icon-bounce">📲</span>
+          <span>Instalar App</span>
+        </button>
+
+        <!-- Perfil de Usuario (Clickeable para ver y editar perfil) -->
+        <div class="usuario-chip" id="perfilUsuario" title="Ver y editar mi perfil">
+          <div class="usuario-avatar" id="avatarLetra">Z</div>
+          <span id="saludo" class="barra-saludo">Estudiante</span>
+        </div>
+
+        <button id="salir" class="btn-salir" type="button" title="Cerrar sesión">
+          Salir
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Contenedor del Layout: Sidebar + Contenido -->
+  <div class="app-layout">
+
+    <!-- Telón / Overlay para cerrar el menú en móviles -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <!-- Menú Lateral (Sidebar) de Cursos -->
+    <aside id="sidebar" class="sidebar" aria-label="Menú de Cursos">
+      <div class="sidebar-header">
+        <div class="sidebar-header-info">
+          <h2>Catálogo Académico</h2>
+          <p>Desarrollo: Equipo ZENITH</p>
+        </div>
+        <button id="btnCerrarSidebar" class="btn-cerrar-sidebar" type="button" aria-label="Cerrar menú">
+          ✕
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul id="listaCursos">
+          <!-- Generado dinámicamente con JS -->
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="status-conexion">
+          <span id="dotConexion" class="dot-status"></span>
+          <span id="textoConexion">Conectado a la red</span>
+        </div>
+
+        <button type="button" id="btnAbrirPerfilSidebar" class="btn-sidebar-perfil">
+          👤 Mi Perfil de Estudiante
+        </button>
+
+        <div class="card-install-sidebar">
+          <p>⚡ Cursos disponibles sin conexión</p>
+          <button type="button" class="btn-instalar-sidebar" onclick="abrirInstalacion()">
+            Instalar PWA Zenith
+          </button>
+        </div>
+
+        <div class="sidebar-copyright">
+          © 2026 Equipo ZENITH<br>Todos los derechos reservados
+        </div>
+      </div>
+    </aside>
+
+    <!-- Área de Contenido Principal -->
+    <main class="contenido-principal" id="areaPrincipal">
+      <section id="detalle" aria-live="polite">
+        <!-- Contenido de bienvenida -->
+        <div class="bienvenida-card">
+          <div class="bienvenida-logo">
+            <img src="icons/logo-zenith.png" alt="Logo Zenith" style="width:100%; height:100%; object-fit:contain;">
+          </div>
+          <h2>¡Bienvenido a Aprende UTN!</h2>
+          <p>Plataforma educativa con soporte PWA offline. Selecciona uno de los módulos en el menú lateral para consultar las lecciones divididas por pestañas y realizar tu examen final.</p>
+          <button type="button" class="btn-empezar-curso" id="btnPrimerCurso">
+            Explorar primer curso 👉
+          </button>
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <!-- Toast / Banner Flotante de Instalación PWA (Con descarte funcional) -->
+  <aside id="bannerInstalar" class="banner-instalar-flotante" hidden aria-label="Aviso de instalación">
+    <div class="toast-header">
+      <div class="toast-logo-wrap">
+        <img src="icons/logo-zenith.png" alt="Zenith" class="toast-logo-img">
+      </div>
+      <div class="toast-textos">
+        <div class="toast-titulo">Instala Aprende UTN</div>
+        <div class="toast-desc">App desarrollada por <strong>Equipo ZENITH</strong>. Estudia rápido y sin conexión.</div>
+      </div>
+    </div>
+    <div class="toast-acciones">
+      <button type="button" id="btnToastInstalar" class="btn-toast-instalar" onclick="abrirInstalacion()">
+        ⚡ Instalar ahora
+      </button>
+      <button type="button" id="btnToastDescartar" class="btn-toast-descartar" onclick="cerrarBannerInstalar()" aria-label="Cerrar aviso">
+        Quizás luego
+      </button>
+    </div>
+  </aside>
+
+  <!-- MODAL DE PERFIL DE USUARIO -->
+  <div id="modalPerfil" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="perfilTitulo">
+    <div class="modal-perfil-card">
+      <div class="modal-header">
+        <h3 id="perfilTitulo">👤 Perfil del Estudiante</h3>
+        <button type="button" id="btnCerrarModalPerfil" class="btn-cerrar-modal" aria-label="Cerrar ventana">✕</button>
+      </div>
+
+      <div class="perfil-foto-seccion">
+        <div class="perfil-avatar-preview" id="perfilAvatarContenedor">
+          Z
+        </div>
+        <input type="file" id="inputFotoPerfil" accept="image/*" hidden>
+        <button type="button" id="btnDispararFoto" class="btn-cambiar-foto">
+          📷 Cambiar foto de perfil
+        </button>
+      </div>
+
+      <form id="formPerfil">
+        <div class="perfil-info-grid">
+          <div class="grupo-campo">
+            <label for="inputPerfilNombre">Nombre completo</label>
+            <input type="text" id="inputPerfilNombre" required>
+          </div>
+
+          <div class="grupo-campo">
+            <label for="inputPerfilCorreo">Correo electrónico</label>
+            <input type="email" id="inputPerfilCorreo" required>
+          </div>
+
+          <div class="perfil-info-item">
+            <div class="perfil-label">Matrícula / UID Alumno</div>
+            <div class="perfil-valor-estatico" id="txtPerfilUID" style="font-family: monospace; font-size: 0.8rem; word-break: break-all;">-</div>
+          </div>
+
+          <div class="perfil-info-item">
+            <div class="perfil-label">Estatus Académico</div>
+            <div class="perfil-valor-estatico" style="color: var(--success);">● Activo (Nivel Superior)</div>
+          </div>
+        </div>
+
+        <p id="msgPerfil" style="text-align: center; margin-bottom: 1rem; font-weight: 600; min-height: 1.2rem;"></p>
+
+        <button type="submit" class="btn-submit">
+          💾 Guardar cambios de perfil
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Instrucciones de Instalación -->
+  <div id="modalInstalacion" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitulo">📲 Instalar App (Equipo ZENITH)</h3>
+        <button type="button" id="btnCerrarModal" class="btn-cerrar-modal" onclick="cerrarModalInstalacion()" aria-label="Cerrar ventana">✕</button>
+      </div>
+      <div class="modal-pasos">
+        <div class="paso-item">
+          <div class="paso-icono">🤖</div>
+          <div class="paso-textos">
+            <h4>En Android (Google Chrome)</h4>
+            <p>Toca los tres puntos (<strong>⋮</strong>) en la barra del navegador y selecciona <strong>"Instalar aplicación"</strong> o <strong>"Agregar a pantalla principal"</strong>.</p>
+          </div>
+        </div>
+        <div class="paso-item">
+          <div class="paso-icono">🍎</div>
+          <div class="paso-textos">
+            <h4>En iPhone / iPad (Safari)</h4>
+            <p>Toca el botón <strong>Compartir</strong> (ícono de recuadro con flecha arriba) y elige <strong>"Agregar al inicio"</strong>.</p>
+          </div>
+        </div>
+        <div class="paso-item">
+          <div class="paso-icono">💻</div>
+          <div class="paso-textos">
+            <h4>En PC (Chrome / Edge)</h4>
+            <p>Haz clic en el icono de instalación que se ubica a la derecha de la barra de direcciones URL.</p>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn-submit" onclick="cerrarModalInstalacion()">¡Entendido!</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+  <script src="js/pwa.js"></script>
+</body>
+</html>

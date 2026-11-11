@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1128">
+  <meta name="description" content="Registro de estudiantes - Desarrollado por Equipo ZENITH">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icons/favicon.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/estilos.css">
+  <title>Aprende UTN – Crear cuenta · Equipo ZENITH</title>
+</head>
+<body class="centrado">
+
+  <main class="tarjeta-auth">
+    <div class="marca">
+      <div class="logo-zenith-wrap">
+        <img src="icons/logo-zenith.png" alt="Logo Equipo Zenith" class="logo-zenith-img">
+      </div>
+      <h1>Crear Cuenta</h1>
+      <span class="marca-zenith-tag">Equipo ZENITH</span>
+      <p class="subtitulo">Registro de Alumnos · Nivel Superior</p>
+    </div>
+
+    <form id="formRegistro">
+      <div class="grupo-campo">
+        <label for="nombre">Nombre completo</label>
+        <div class="input-wrap">
+          <input type="text" id="nombre" placeholder="Ej: Diana Morales" required autocomplete="name">
+        </div>
+      </div>
+
+      <div class="grupo-campo">
+        <label for="correo">Correo electrónico</label>
+        <div class="input-wrap">
+          <input type="email" id="correo" placeholder="ejemplo@correo.com" required autocomplete="email">
+        </div>
+      </div>
+
+      <div class="grupo-campo">
+        <label for="clave">Contraseña <span class="hint">(mínimo 6 caracteres)</span></label>
+        <div class="input-wrap">
+          <input type="password" id="clave" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+        </div>
+      </div>
+
+      <div class="grupo-campo">
+        <label for="clave2">Confirmar contraseña</label>
+        <div class="input-wrap">
+          <input type="password" id="clave2" placeholder="••••••••" minlength="6" required autocomplete="new-password">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit">Registrarme y Comenzar</button>
+    </form>
+
+    <p id="mensaje" role="alert"></p>
+
+    <div class="enlaces">
+      ¿Ya estás registrado? <a href="index.html">Iniciar sesión aquí</a>
+    </div>
+
+    <div class="auth-copyright">
+      © 2026 Equipo ZENITH · Todos los derechos reservados
+    </div>
+  </main>
+
+  <script type="module" src="js/registro.js"></script>
+  <script src="js/pwa.js"></script>
+</body>
+</html>

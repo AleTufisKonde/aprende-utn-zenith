@@ -1,0 +1,1670 @@
+/* =====================================================================
+   estilos.css — Aprende UTN PWA · IDENTIDAD OFICIAL EQUIPO ZENITH
+   Paleta: Cyber Cyan / Electric Azure & Midnight Navy
+   ===================================================================== */
+
+/* ---- Regla fundamental para atributos hidden ---- */
+[hidden], .oculto {
+  display: none !important;
+}
+
+/* ---- Variables de Diseño (Paleta Zenith) ---- */
+:root {
+  /* Azules / Cianes Zenith */
+  --zenith-cyan:       #00a8ff;      /* Cian Eléctrico */
+  --zenith-cyan-glow:  #00d2ff;
+  --zenith-blue:       #0284c7;      /* Azul Primario */
+  --zenith-blue-dark:  #0369a1;
+  --zenith-tint:       #e0f2fe;      /* Tinte suave para selecciones */
+  --zenith-glow:       rgba(0, 168, 255, 0.45);
+
+  /* Fondos y Oscuros Zenith */
+  --navy-deep:         #070e1e;      /* Fondo espacial obsidiana */
+  --navy-surface:      #0a142c;      /* Superficie oscura */
+  --navy-card:         #0f1c3d;      /* Tarjeta elevada oscura */
+  --navy-border:       #1e293b;
+
+  /* Superficies para Modo Lectura Cómodo */
+  --bg-page:           #f8fafc;
+  --bg-surface:        #ffffff;
+  --bg-subtle:         #f1f5f9;
+
+  --text-main:         #0f172a;
+  --text-muted:        #475569;
+  --text-light:        #94a3b8;
+  --text-on-dark:      #f8fafc;
+
+  --border:            #e2e8f0;
+  --border-focus:      #00a8ff;
+
+  --error:             #ef4444;
+  --error-bg:          #fee2e2;
+  --success:           #10b981;
+  --success-bg:        #d1fae5;
+  --accent:            #f59e0b;
+  --accent-light:      #fef3c7;
+
+  --shadow-sm:         0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:         0 4px 6px -1px rgba(0,0,0,0.08);
+  --shadow-lg:         0 10px 18px -3px rgba(7, 14, 30, 0.12);
+  --shadow-xl:         0 20px 30px -5px rgba(7, 14, 30, 0.2);
+  --shadow-cyan:       0 0 20px rgba(0, 168, 255, 0.35);
+
+  --radius-sm:         8px;
+  --radius-md:         12px;
+  --radius-lg:         18px;
+  --radius-full:       9999px;
+
+  --sidebar-w:         310px;
+  --header-h:          70px;
+
+  --transition:        all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --font:              -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* ---- Reset & Base ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* =====================================================================
+   PANTALLAS DE AUTENTICACIÓN (LOGIN / REGISTRO) - ESTILO ZENITH
+   ===================================================================== */
+.centrado {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  background: radial-gradient(circle at 10% 20%, #0d1b3e 0%, #070e1e 80%, #030712 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.centrado::before {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(0, 168, 255, 0.18), transparent 70%);
+  top: -120px;
+  right: -100px;
+  pointer-events: none;
+}
+
+.tarjeta-auth {
+  background: #ffffff;
+  width: 100%;
+  max-width: 440px;
+  padding: 2.5rem 2rem 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 168, 255, 0.25);
+  position: relative;
+  z-index: 2;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.marca {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+/* LOGO OFICIAL ZENITH */
+.logo-zenith-wrap {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 0.85rem;
+  background: #070e1e;
+  border: 2px solid var(--zenith-cyan);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  box-shadow: var(--shadow-cyan);
+  transition: var(--transition);
+}
+
+.logo-zenith-wrap:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(0, 210, 255, 0.6);
+}
+
+.logo-zenith-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.marca h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--navy-deep);
+  margin-bottom: 0.25rem;
+}
+
+.marca-zenith-tag {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+}
+
+.subtitulo {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-top: 0.4rem;
+}
+
+/* Formularios */
+.grupo-campo {
+  margin-bottom: 1.2rem;
+}
+
+.grupo-campo label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0.4rem;
+}
+
+.grupo-campo label .hint {
+  font-weight: normal;
+  color: var(--text-light);
+  font-size: 0.8rem;
+}
+
+.input-wrap {
+  position: relative;
+}
+
+input[type=email],
+input[type=password],
+input[type=text] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--text-main);
+  background: var(--bg-subtle);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: var(--transition);
+}
+
+input:focus {
+  background: #ffffff;
+  border-color: var(--zenith-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 168, 255, 0.2);
+}
+
+input::placeholder {
+  color: var(--text-light);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 0.85rem 1.25rem;
+  background: linear-gradient(135deg, var(--zenith-blue), #034870);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  margin-top: 0.5rem;
+}
+
+.btn-submit:hover {
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 168, 255, 0.45);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+}
+
+#mensaje {
+  min-height: 1.4rem;
+  margin-top: 0.8rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  color: var(--error);
+  transition: var(--transition);
+}
+
+.enlaces {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.enlaces a {
+  color: var(--zenith-blue);
+  text-decoration: none;
+  font-weight: 700;
+  transition: var(--transition);
+}
+
+.enlaces a:hover {
+  color: var(--zenith-cyan);
+  text-decoration: underline;
+}
+
+.auth-copyright {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* =====================================================================
+   HEADER / BARRA SUPERIOR (app.html) - ESTILO ZENITH
+   ===================================================================== */
+.header-app {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--header-h);
+  background: rgba(7, 14, 30, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(0, 168, 255, 0.25);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.header-contenedor {
+  height: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.header-izquierda {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Botón Hamburguesa */
+.btn-menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(0, 168, 255, 0.3);
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-menu-toggle:hover {
+  background: rgba(0, 168, 255, 0.18);
+  border-color: var(--zenith-cyan);
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.header-logo-zenith {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1.5px solid var(--zenith-cyan);
+  padding: 3px;
+  background: #070e1e;
+  box-shadow: 0 0 10px rgba(0, 168, 255, 0.35);
+}
+
+.header-logo-texto {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.header-logo-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  color: #ffffff;
+  padding: 0.18rem 0.55rem;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 0 0 8px rgba(0, 168, 255, 0.4);
+}
+
+.header-derecha {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* BOTÓN DE INSTALACIÓN PRINCIPAL (HEADER) */
+.btn-instalar-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.55rem 1.15rem;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: var(--shadow-cyan);
+  transition: var(--transition);
+  animation: pulseZenith 2.8s infinite;
+}
+
+@keyframes pulseZenith {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 14px rgba(0, 168, 255, 0.4); }
+  50%      { transform: scale(1.04); box-shadow: 0 0 24px rgba(0, 210, 255, 0.75); }
+}
+
+.btn-instalar-header:hover {
+  background: linear-gradient(135deg, var(--zenith-cyan-glow), var(--zenith-cyan));
+  transform: translateY(-1px) scale(1.03);
+}
+
+.btn-instalar-header .icon-bounce {
+  font-size: 1.1rem;
+}
+
+/* Chip de usuario (Clickeable para ver Perfil) */
+.usuario-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: rgba(255,255,255,0.08);
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(0, 168, 255, 0.3);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.usuario-chip:hover {
+  background: rgba(0, 168, 255, 0.15);
+  border-color: var(--zenith-cyan);
+  transform: translateY(-1px);
+}
+
+.usuario-avatar {
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  overflow: hidden;
+  border: 1px solid var(--zenith-cyan);
+  flex-shrink: 0;
+}
+
+.usuario-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.barra-saludo {
+  font-size: 0.85rem;
+  font-weight: 600;
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-salir {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-salir:hover {
+  background: rgba(239, 68, 68, 0.85);
+}
+
+/* =====================================================================
+   LAYOUT PRINCIPAL: SIDEBAR + ÁREA DE CONTENIDO
+   ===================================================================== */
+.app-layout {
+  display: flex;
+  min-height: calc(100vh - var(--header-h));
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Overlay para móvil al abrir menú */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 14, 30, 0.75);
+  backdrop-filter: blur(5px);
+  z-index: 40;
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition);
+}
+
+.sidebar-overlay.activo {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* SIDEBAR / MENÚ LATERAL */
+.sidebar {
+  width: var(--sidebar-w);
+  background: #ffffff;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: var(--header-h);
+  bottom: 0;
+  left: 0;
+  z-index: 45;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+}
+
+.sidebar.abierto {
+  transform: translateX(0);
+}
+
+/* Cabecera del Sidebar */
+.sidebar-header {
+  padding: 1.25rem 1.25rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-header-info h2 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.sidebar-header-info p {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--zenith-blue);
+}
+
+.btn-cerrar-sidebar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+/* Lista de cursos en Sidebar */
+.sidebar-nav {
+  padding: 1rem 0.85rem;
+  flex: 1;
+}
+
+#listaCursos {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+#listaCursos li {
+  margin: 0;
+}
+
+.curso-item-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-subtle);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.curso-item-btn:hover {
+  background: #ffffff;
+  border-color: var(--zenith-cyan);
+  transform: translateX(3px);
+  box-shadow: var(--shadow-sm);
+}
+
+.curso-item-btn.activo {
+  background: var(--zenith-tint);
+  border-color: var(--zenith-blue);
+  color: var(--navy-deep);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+.curso-item-btn.activo::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--zenith-cyan);
+}
+
+.curso-item-icono {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.curso-item-btn.activo .curso-item-icono {
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  color: #ffffff;
+  border-color: var(--zenith-cyan);
+}
+
+.curso-item-textos {
+  flex: 1;
+  min-width: 0;
+}
+
+.curso-item-titulo {
+  font-size: 0.92rem;
+  line-height: 1.3;
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.curso-item-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.curso-item-flecha {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  transition: var(--transition);
+}
+
+.curso-item-btn.activo .curso-item-flecha {
+  color: var(--zenith-blue);
+  transform: translateX(2px);
+}
+
+/* Pie del Sidebar */
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+
+.status-conexion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.dot-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
+.dot-status.offline {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+.btn-sidebar-perfil {
+  width: 100%;
+  margin-bottom: 0.6rem;
+  padding: 0.6rem;
+  background: #ffffff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--navy-deep);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: var(--transition);
+}
+
+.btn-sidebar-perfil:hover {
+  border-color: var(--zenith-blue);
+  background: var(--zenith-tint);
+}
+
+.card-install-sidebar {
+  background: linear-gradient(135deg, #070e1e, #0c1a3b);
+  border: 1px solid rgba(0, 168, 255, 0.3);
+  color: #ffffff;
+  padding: 0.85rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-install-sidebar p {
+  font-size: 0.8rem;
+  margin-bottom: 0.6rem;
+  opacity: 0.95;
+}
+
+.btn-instalar-sidebar {
+  width: 100%;
+  padding: 0.5rem;
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-instalar-sidebar:hover {
+  filter: brightness(1.15);
+}
+
+.sidebar-copyright {
+  font-size: 0.7rem;
+  color: var(--text-light);
+  text-align: center;
+  margin-top: 0.75rem;
+  line-height: 1.3;
+}
+
+/* =====================================================================
+   ÁREA DE CONTENIDO PRINCIPAL (DETALLE DEL CURSO CON PESTAÑAS)
+   ===================================================================== */
+.contenido-principal {
+  flex: 1;
+  padding: 1.5rem 1.25rem 5rem;
+  min-width: 0;
+}
+
+/* Hero del Curso */
+.curso-hero {
+  background: linear-gradient(135deg, #070e1e 0%, #0d214d 100%);
+  border: 1px solid rgba(0, 168, 255, 0.3);
+  color: #ffffff;
+  padding: 2.25rem 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg), var(--shadow-cyan);
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.curso-hero::after {
+  content: '';
+  position: absolute;
+  right: -20px;
+  bottom: -30px;
+  width: 180px;
+  height: 180px;
+  background: url('../icons/logo-zenith.png') no-repeat center;
+  background-size: contain;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.curso-hero-badge {
+  display: inline-block;
+  background: rgba(0, 168, 255, 0.2);
+  border: 1px solid var(--zenith-cyan);
+  color: var(--zenith-cyan-glow);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.curso-hero h2 {
+  font-size: clamp(1.4rem, 2.8vw, 2rem);
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 0.6rem;
+}
+
+.curso-hero p {
+  font-size: 0.98rem;
+  opacity: 0.9;
+  max-width: 680px;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+/* BARRA DE PESTAÑAS DEL CURSO (LECCIONES VS EXAMEN FINAL) */
+.curso-tabs-bar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+  background: #ffffff;
+  padding: 0.4rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+}
+
+.curso-tab-btn {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.curso-tab-btn:hover {
+  background: var(--bg-subtle);
+  color: var(--navy-deep);
+}
+
+.curso-tab-btn.activo {
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 168, 255, 0.35);
+}
+
+.curso-tab-badge {
+  font-size: 0.72rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.curso-tab-btn.activo .curso-tab-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Paneles de contenido */
+.curso-tab-panel {
+  display: none;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.curso-tab-panel.activo {
+  display: block;
+}
+
+/* Banner de transición para ir al examen */
+.banner-ir-examen {
+  margin-top: 2rem;
+  background: linear-gradient(135deg, #070e1e, #0c1a3b);
+  border: 1.5px solid var(--zenith-cyan);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  text-align: center;
+  color: #ffffff;
+  box-shadow: var(--shadow-cyan);
+}
+
+.banner-ir-examen h4 {
+  font-size: 1.2rem;
+  margin-bottom: 0.4rem;
+  color: var(--zenith-cyan-glow);
+}
+
+.banner-ir-examen p {
+  font-size: 0.9rem;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.btn-pasar-examen {
+  padding: 0.75rem 1.75rem;
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 168, 255, 0.4);
+  transition: var(--transition);
+}
+
+.btn-pasar-examen:hover {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+}
+
+/* Estado de Bienvenida inicial */
+.bienvenida-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: 3.5rem 2rem;
+  text-align: center;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+.bienvenida-logo {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.25rem;
+  border-radius: var(--radius-md);
+  background: #070e1e;
+  padding: 10px;
+  border: 2px solid var(--zenith-cyan);
+  box-shadow: var(--shadow-cyan);
+}
+
+.bienvenida-card h2 {
+  font-size: 1.5rem;
+  color: var(--navy-deep);
+  margin-bottom: 0.5rem;
+}
+
+.bienvenida-card p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-empezar-curso {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 168, 255, 0.4);
+  transition: var(--transition);
+}
+
+.btn-empezar-curso:hover {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+}
+
+/* Lecciones (Artículos) */
+.seccion-titulo-lecciones {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--navy-deep);
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.leccion-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.75rem 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.leccion-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: #93c5fd;
+}
+
+.leccion-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--zenith-cyan), var(--zenith-blue));
+}
+
+.leccion-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.leccion-numero {
+  width: 32px;
+  height: 32px;
+  background: var(--zenith-tint);
+  color: var(--zenith-blue);
+  border: 1px solid var(--zenith-cyan);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.88rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.leccion-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--navy-deep);
+}
+
+.leccion-texto {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: #334155;
+  white-space: pre-line;
+}
+
+/* =====================================================================
+   SECCIÓN DEL QUIZ / EVALUACIÓN INTERACTIVA
+   ===================================================================== */
+.quiz-seccion {
+  background: var(--bg-surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.75rem;
+  margin-top: 0;
+  box-shadow: var(--shadow-md);
+}
+
+.quiz-header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.quiz-header h3 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--navy-deep);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.quiz-instruccion {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Tarjeta de Pregunta */
+.pregunta-card {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.25rem 1rem;
+  margin-bottom: 1.25rem;
+  transition: var(--transition);
+}
+
+.pregunta-card:hover {
+  background: #ffffff;
+  border-color: var(--zenith-cyan);
+}
+
+.pregunta-titulo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  padding: 0 0.25rem;
+  margin-bottom: 0.85rem;
+  line-height: 1.4;
+}
+
+.opciones-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.opcion-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #ffffff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.opcion-label:hover {
+  background: var(--zenith-tint);
+  border-color: var(--zenith-cyan);
+}
+
+.opcion-label:has(input[type=radio]:checked) {
+  background: var(--zenith-tint);
+  border-color: var(--zenith-blue);
+  font-weight: 600;
+  color: var(--navy-deep);
+}
+
+.opcion-label input[type=radio] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--zenith-blue);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Botón de Calificar */
+.quiz-acciones {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.btn-calificar {
+  padding: 0.95rem 2rem;
+  background: linear-gradient(135deg, var(--zenith-blue), #034870);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.btn-calificar:hover {
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 168, 255, 0.45);
+}
+
+/* Tarjeta de Calificación / Resultado */
+.resultado-box {
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.resultado-box.aprobado {
+  display: block;
+  background: var(--success-bg);
+  border: 2px solid var(--success);
+  color: #065f46;
+}
+
+.resultado-box.reprobado {
+  display: block;
+  background: var(--error-bg);
+  border: 2px solid var(--error);
+  color: #991b1b;
+}
+
+.resultado-box.alerta {
+  display: block;
+  background: var(--accent-light);
+  border: 2px solid var(--accent);
+  color: #92400e;
+}
+
+/* =====================================================================
+   BANNER / TOAST FLOTANTE DE INSTALACIÓN PWA
+   ===================================================================== */
+.banner-instalar-flotante {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  max-width: 380px;
+  background: #070e1e;
+  color: #ffffff;
+  border: 2px solid var(--zenith-cyan);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), var(--shadow-cyan);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  animation: slideInToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideInToast {
+  from { transform: translateY(40px) scale(0.95); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.toast-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.toast-logo-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: #0a142c;
+  border: 1px solid var(--zenith-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(0, 168, 255, 0.35);
+}
+
+.toast-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.toast-textos {
+  flex: 1;
+}
+
+.toast-titulo {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.2rem;
+}
+
+.toast-desc {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.toast-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.btn-toast-instalar {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 3px 10px rgba(0, 168, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.btn-toast-instalar:hover {
+  filter: brightness(1.15);
+}
+
+.btn-toast-descartar {
+  padding: 0.65rem 0.9rem;
+  background: rgba(255,255,255,0.08);
+  color: #94a3b8;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-toast-descartar:hover {
+  background: rgba(255,255,255,0.18);
+  color: #ffffff;
+}
+
+/* =====================================================================
+   MODAL DE PERFIL DE USUARIO
+   ===================================================================== */
+.modal-perfil-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  max-width: 520px;
+  width: 100%;
+  padding: 2rem;
+  box-shadow: var(--shadow-xl);
+  border: 1.5px solid var(--border);
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.perfil-foto-seccion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.75rem;
+  position: relative;
+}
+
+.perfil-avatar-preview {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 3px solid var(--zenith-cyan);
+  box-shadow: var(--shadow-cyan);
+  background: #070e1e;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.75rem;
+  position: relative;
+}
+
+.perfil-avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-cambiar-foto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  background: var(--zenith-tint);
+  color: var(--zenith-blue);
+  border: 1px solid var(--zenith-blue);
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-cambiar-foto:hover {
+  background: var(--zenith-blue);
+  color: #ffffff;
+}
+
+.perfil-info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 480px) {
+  .perfil-info-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.perfil-info-item {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+}
+
+.perfil-info-item.full-col {
+  grid-column: 1 / -1;
+}
+
+.perfil-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.perfil-valor-estatico {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--navy-deep);
+}
+
+/* =====================================================================
+   VISTA PREVIA DEL CORREO DE RECUPERACIÓN ZENITH
+   ===================================================================== */
+.card-email-preview {
+  background: #070e1e;
+  border: 2px solid var(--zenith-cyan);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-top: 1.25rem;
+  color: #ffffff;
+  box-shadow: var(--shadow-cyan);
+  animation: fadeIn 0.3s ease;
+}
+
+.email-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(0, 168, 255, 0.25);
+  padding-bottom: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.email-preview-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+}
+
+.email-preview-remitente {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+
+.email-preview-remitente strong {
+  color: var(--zenith-cyan-glow);
+}
+
+.email-preview-body {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #e2e8f0;
+}
+
+.email-preview-btn {
+  display: inline-block;
+  margin: 1rem 0;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--zenith-cyan), var(--zenith-blue));
+  color: #ffffff;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.email-preview-footer {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+/* =====================================================================
+   MODAL GENÉRICO
+   ===================================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 14, 30, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition);
+}
+
+.modal-overlay.abierto {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  max-width: 500px;
+  width: 100%;
+  padding: 2rem;
+  box-shadow: var(--shadow-xl);
+  border: 1.5px solid var(--border);
+  transform: translateY(20px) scale(0.97);
+  transition: var(--transition);
+}
+
+.modal-overlay.abierto .modal-card,
+.modal-overlay.abierto .modal-perfil-card {
+  transform: translateY(0) scale(1);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.modal-header h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--navy-deep);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-cerrar-modal {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.modal-pasos {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.paso-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.paso-icono {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.paso-textos h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.2rem;
+}
+
+.paso-textos p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* =====================================================================
+   RESPONSIVIDAD Y DESKTOP (BREAKPOINTS)
+   ===================================================================== */
+@media (min-width: 860px) {
+  .btn-menu-toggle {
+    display: none;
+  }
+
+  .sidebar {
+    transform: translateX(0);
+    box-shadow: none;
+  }
+
+  .btn-cerrar-sidebar {
+    display: none;
+  }
+
+  .contenido-principal {
+    margin-left: var(--sidebar-w);
+    padding: 2.5rem 3rem 5rem;
+  }
+
+  .sidebar-overlay {
+    display: none !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .header-logo-badge {
+    display: none;
+  }
+
+  .barra-saludo {
+    display: none;
+  }
+
+  .banner-instalar-flotante {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: none;
+  }
+}

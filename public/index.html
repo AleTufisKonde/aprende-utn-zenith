@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1128">
+  <meta name="description" content="Plataforma educativa PWA - Desarrollado por Equipo ZENITH">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icons/favicon.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/estilos.css">
+  <title>Aprende UTN – Iniciar sesión · Equipo ZENITH</title>
+</head>
+<body class="centrado">
+
+  <main class="tarjeta-auth">
+    <div class="marca">
+      <div class="logo-zenith-wrap">
+        <img src="icons/logo-zenith.png" alt="Logo Equipo Zenith" class="logo-zenith-img">
+      </div>
+      <h1>Aprende UTN</h1>
+      <span class="marca-zenith-tag">Equipo ZENITH</span>
+      <p class="subtitulo">Plataforma Educativa de Nivel Superior</p>
+    </div>
+
+    <form id="formLogin">
+      <div class="grupo-campo">
+        <label for="correo">Correo electrónico</label>
+        <div class="input-wrap">
+          <input type="email" id="correo" placeholder="ejemplo@correo.com" required autocomplete="email">
+        </div>
+      </div>
+
+      <div class="grupo-campo">
+        <label for="clave">Contraseña</label>
+        <div class="input-wrap">
+          <input type="password" id="clave" placeholder="••••••••" minlength="6" required autocomplete="current-password">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit">Ingresar a la Plataforma</button>
+    </form>
+
+    <p id="mensaje" role="alert"></p>
+
+    <div class="enlaces">
+      ¿Aún no tienes cuenta? <a href="registro.html">Crear cuenta</a>
+      <br><br>
+      <a href="#" id="olvide">¿Olvidaste tu contraseña?</a>
+    </div>
+
+    <div class="auth-copyright">
+      © 2026 Equipo ZENITH · Todos los derechos reservados
+    </div>
+  </main>
+
+  <!-- MODAL DE RECUPERACIÓN DE CONTRASEÑA ZENITH -->
+  <div id="modalRecuperar" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="recuperarTitulo">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="recuperarTitulo">🔑 Recuperar Contraseña</h3>
+        <button type="button" id="btnCerrarModalRecuperar" class="btn-cerrar-modal" aria-label="Cerrar ventana">✕</button>
+      </div>
+
+      <div id="seccionFormRecuperar">
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+          Ingresa tu correo electrónico registrado y te enviaremos el enlace oficial de restablecimiento de contraseña de <strong>Aprende UTN</strong>.
+        </p>
+        <form id="formRecuperar">
+          <div class="grupo-campo">
+            <label for="correoRecuperar">Correo electrónico registrado</label>
+            <input type="email" id="correoRecuperar" placeholder="tu@correo.com" required>
+          </div>
+          <button type="submit" class="btn-submit" id="btnEnviarRecuperar">
+            ✉️ Enviar correo de recuperación
+          </button>
+        </form>
+        <p id="msgRecuperar" style="text-align: center; margin-top: 0.8rem; font-weight: 600; min-height: 1.2rem;"></p>
+      </div>
+
+      <!-- VISTA PREVIA DEL CORREO OFICIAL ZENITH -->
+      <div id="previewCorreoZenith" class="card-email-preview" hidden>
+        <div class="email-preview-header">
+          <img src="icons/logo-zenith.png" alt="Logo Zenith" class="email-preview-logo">
+          <div class="email-preview-remitente">
+            De: <strong>Equipo ZENITH &lt;noreply@aprende-utn-zenith.firebaseapp.com&gt;</strong><br>
+            Asunto: Restablece tu contraseña para Aprende UTN
+          </div>
+        </div>
+        <div class="email-preview-body">
+          <p>Hola estudiante,</p>
+          <p>Hemos recibido una solicitud para restablecer tu contraseña en la plataforma <strong>Aprende UTN</strong>.</p>
+          <div style="text-align: center;">
+            <span class="email-preview-btn">Restablecer mi Contraseña</span>
+          </div>
+          <p style="font-size: 0.85rem; color: #94a3b8;">
+            El correo oficial ha sido enviado. Revisa tu bandeja de entrada (y tu carpeta de spam) para completar el proceso.
+          </p>
+        </div>
+        <div class="email-preview-footer">
+          © 2026 Equipo ZENITH · Todos los derechos reservados · Aprende UTN
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Banner flotante estético de instalación PWA -->
+  <aside id="bannerInstalar" class="banner-instalar-flotante" hidden aria-label="Aviso de instalación">
+    <div class="toast-header">
+      <div class="toast-logo-wrap">
+        <img src="icons/logo-zenith.png" alt="Zenith" class="toast-logo-img">
+      </div>
+      <div class="toast-textos">
+        <div class="toast-titulo">Instala Aprende UTN</div>
+        <div class="toast-desc">Por <strong>Equipo ZENITH</strong>. Estudia rápido y sin conexión.</div>
+      </div>
+    </div>
+    <div class="toast-acciones">
+      <button type="button" id="btnToastInstalar" class="btn-toast-instalar" onclick="abrirInstalacion()">
+        Instalar App
+      </button>
+      <button type="button" id="btnToastDescartar" class="btn-toast-descartar" onclick="cerrarBannerInstalar()" aria-label="Cerrar aviso">
+        Quizás luego
+      </button>
+    </div>
+  </aside>
+
+  <script type="module" src="js/login.js"></script>
+  <script src="js/pwa.js"></script>
+</body>
+</html>
