@@ -1,4 +1,4 @@
-const VERSION = "v7";   // Versión actualizada Zenith: Corrección de derrames móviles y Sync de fotos cross-device
+const VERSION = "v8";   // Versión actualizada Zenith: Feedback instantáneo en perfil y fotos sin bloqueos
 const CACHE   = "aprende-utn-zenith-" + VERSION;
 
 const ARCHIVOS = [

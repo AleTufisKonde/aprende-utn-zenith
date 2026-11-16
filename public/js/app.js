@@ -89,20 +89,22 @@ onAuthStateChanged(auth, async (usuario) => {
     localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, usuarioActual.photoURL);
   }
 
-  // 3. Consultar Cloud Firestore por si existe una foto guardada en base de datos
+  // 3. Consultar Cloud Firestore con timeout de seguridad (para no bloquear si no está habilitado)
   try {
     const docRef = doc(db, "usuarios", usuarioActual.uid);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists() && docSnap.data().photoURL) {
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 1500));
+    const docSnap = await Promise.race([getDoc(docRef), timeoutPromise]);
+    if (docSnap && docSnap.exists && docSnap.exists() && docSnap.data().photoURL) {
       const nubeFoto = docSnap.data().photoURL;
       localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, nubeFoto);
       // Si la foto en Firestore es una URL HTTP y Firebase Auth no la tiene, sincronizar Auth:
       if (nubeFoto.startsWith("http") && usuarioActual.photoURL !== nubeFoto) {
         updateProfile(usuarioActual, { photoURL: nubeFoto }).catch(() => {});
       }
+      refrescarDatosUsuarioUI(nubeFoto);
     }
-  } catch (err) {
-    console.log("[Zenith] Firestore:", err.message);
+  } catch (_) {
+    // Si Firestore no responde o no está inicializado, continuamos normalmente con Firebase Auth y LocalStorage
   }
 
   refrescarDatosUsuarioUI();
@@ -489,18 +491,16 @@ function inicializarSelectorAvatares() {
         await updateProfile(usuarioActual, { photoURL: av.url });
         localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, av.url);
 
-        // 2. Guardar en Firestore si está disponible
-        try {
-          await setDoc(doc(db, "usuarios", usuarioActual.uid), {
-            photoURL: av.url,
-            displayName: usuarioActual.displayName || ""
-          }, { merge: true });
-        } catch (_) {}
+        // 2. Guardar en Firestore en segundo plano (sin await que bloquee la UI)
+        setDoc(doc(db, "usuarios", usuarioActual.uid), {
+          photoURL: av.url,
+          displayName: usuarioActual.displayName || ""
+        }, { merge: true }).catch(() => {});
 
-        msgPerfil.textContent = "✅ ¡Avatar sincronizado con éxito en tu cuenta!";
+        msgPerfil.textContent = "✅ ¡Avatar seleccionado y sincronizado!";
         msgPerfil.style.color = "#10b981";
       } catch (err) {
-        msgPerfil.textContent = "Error guardando avatar: " + err.message;
+        msgPerfil.textContent = "Error guardando avatar: " + (traducir(err.code) || err.message);
         msgPerfil.style.color = "#ef4444";
       }
     });
@@ -558,18 +558,17 @@ btnGuardarFotoUrl?.addEventListener("click", async () => {
     await updateProfile(usuarioActual, { photoURL: urlDirecta });
     localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, urlDirecta);
 
-    try {
-      await setDoc(doc(db, "usuarios", usuarioActual.uid), {
-        photoURL: urlDirecta,
-        displayName: usuarioActual.displayName || ""
-      }, { merge: true });
-    } catch (_) {}
+    // Guardar en Firestore en segundo plano (sin await que bloquee la UI)
+    setDoc(doc(db, "usuarios", usuarioActual.uid), {
+      photoURL: urlDirecta,
+      displayName: usuarioActual.displayName || ""
+    }, { merge: true }).catch(() => {});
 
     msgPerfil.textContent = "✅ ¡Foto sincronizada en la nube con éxito!";
     msgPerfil.style.color = "#10b981";
     if (inputFotoUrl) inputFotoUrl.value = "";
   } catch (err) {
-    msgPerfil.textContent = "Error al sincronizar foto: " + err.message;
+    msgPerfil.textContent = "Error al sincronizar foto: " + (traducir(err.code) || err.message);
     msgPerfil.style.color = "#ef4444";
   }
 });
@@ -586,68 +585,82 @@ inputFotoPerfil?.addEventListener("change", (e) => {
     return;
   }
 
-  msgPerfil.textContent = "Optimizando y subiendo foto a la nube...";
+  msgPerfil.textContent = "Optimizando y procesando imagen...";
   msgPerfil.style.color = "#00a8ff";
 
   const reader = new FileReader();
+  reader.onerror = () => {
+    msgPerfil.textContent = "Error al leer el archivo de imagen.";
+    msgPerfil.style.color = "#ef4444";
+  };
   reader.onload = (event) => {
     const img = new Image();
+    img.onerror = () => {
+      msgPerfil.textContent = "El archivo seleccionado no es una imagen válida.";
+      msgPerfil.style.color = "#ef4444";
+    };
     img.onload = async () => {
-      // Redimensionar a 160x160 px con compresión JPEG ligera
-      const canvas = document.createElement("canvas");
-      canvas.width = 160;
-      canvas.height = 160;
-      const ctx = canvas.getContext("2d");
-
-      // Centrar y recortar cuadrado
-      const minDimension = Math.min(img.width, img.height);
-      const sx = (img.width - minDimension) / 2;
-      const sy = (img.height - minDimension) / 2;
-      ctx.drawImage(img, sx, sy, minDimension, minDimension, 0, 0, 160, 160);
-
-      const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.82);
-
-      // 1. Mostrar de inmediato localmente
-      refrescarDatosUsuarioUI(compressedDataUrl);
-
-      // 2. Intentar subir a un servicio de hosting libre para obtener URL pública HTTP compatible con Firebase Auth
-      let urlPublica = null;
       try {
-        const base64Pure = compressedDataUrl.replace(/^data:image\/\w+;base64,/, "");
-        const fd = new FormData();
-        fd.append("image", base64Pure);
-        const resp = await fetch("https://api.imgbb.com/1/upload?key=2d92c735d481215b02664d93540e527f", {
-          method: "POST",
-          body: fd
-        });
-        const json = await resp.json();
-        if (json && json.success && json.data && json.data.url) {
-          urlPublica = json.data.url;
-        }
-      } catch (uploadErr) {
-        console.log("[Zenith] Subida externa opcional no disponible:", uploadErr.message);
-      }
+        // Redimensionar a 160x160 px con compresión JPEG ligera
+        const canvas = document.createElement("canvas");
+        canvas.width = 160;
+        canvas.height = 160;
+        const ctx = canvas.getContext("2d");
 
-      const fotoFinal = urlPublica || compressedDataUrl;
-      localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, fotoFinal);
+        // Centrar y recortar cuadrado
+        const minDimension = Math.min(img.width, img.height);
+        const sx = (img.width - minDimension) / 2;
+        const sy = (img.height - minDimension) / 2;
+        ctx.drawImage(img, sx, sy, minDimension, minDimension, 0, 0, 160, 160);
 
-      try {
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.82);
+
+        // 1. Mostrar de inmediato localmente
+        refrescarDatosUsuarioUI(compressedDataUrl);
+        localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, compressedDataUrl);
+
+        // 2. Intentar subir a servicio hosting con timeout estricto de 3.5 segundos
+        let urlPublica = null;
+        try {
+          const controller = new AbortController();
+          const tid = setTimeout(() => controller.abort(), 3500);
+          const base64Pure = compressedDataUrl.replace(/^data:image\/\w+;base64,/, "");
+          const fd = new FormData();
+          fd.append("image", base64Pure);
+          const resp = await fetch("https://api.imgbb.com/1/upload?key=2d92c735d481215b02664d93540e527f", {
+            method: "POST",
+            body: fd,
+            signal: controller.signal
+          });
+          clearTimeout(tid);
+          if (resp.ok) {
+            const json = await resp.json();
+            if (json && json.success && json.data && json.data.url) {
+              urlPublica = json.data.url;
+            }
+          }
+        } catch (_) {}
+
+        const fotoFinal = urlPublica || compressedDataUrl;
+        localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, fotoFinal);
+
+        // Si obtuvimos URL pública, Firebase Auth la guarda en servidores de Google y sincroniza con todos los dispositivos
         if (urlPublica) {
-          // Si obtuvimos URL pública, Firebase Auth la guarda en servidores de Google y sincroniza con todos los dispositivos
-          await updateProfile(usuarioActual, { photoURL: urlPublica });
+          await updateProfile(usuarioActual, { photoURL: urlPublica }).catch(() => {});
         }
 
-        // Guardar también en Cloud Firestore para sincronización cross-device garantizada
-        await setDoc(doc(db, "usuarios", usuarioActual.uid), {
+        // Guardar en Cloud Firestore en segundo plano (sin await que bloquee la UI)
+        setDoc(doc(db, "usuarios", usuarioActual.uid), {
           photoURL: fotoFinal,
           displayName: usuarioActual.displayName || ""
-        }, { merge: true });
+        }, { merge: true }).catch(() => {});
 
-        msgPerfil.textContent = "✅ ¡Foto guardada y sincronizada en la nube con éxito!";
+        msgPerfil.textContent = "✅ ¡Foto guardada y actualizada con éxito!";
         msgPerfil.style.color = "#10b981";
-      } catch (errSync) {
-        msgPerfil.textContent = "✅ Foto guardada en tu dispositivo actual.";
-        msgPerfil.style.color = "#10b981";
+      } catch (errProceso) {
+        console.error("[Zenith] Error procesando imagen:", errProceso);
+        msgPerfil.textContent = "Error al procesar la foto: " + errProceso.message;
+        msgPerfil.style.color = "#ef4444";
       }
     };
     img.src = event.target.result;
@@ -665,23 +678,30 @@ formPerfil?.addEventListener("submit", async (e) => {
   const nuevoCorreo = inputPerfilCorreo.value.trim();
 
   try {
-    // 1. Actualizar Nombre
+    // 1. Actualizar Nombre en Firebase Auth
     if (nuevoNombre && nuevoNombre !== usuarioActual.displayName) {
       await updateProfile(usuarioActual, { displayName: nuevoNombre });
     }
 
     // 2. Actualizar Correo (si cambió)
     if (nuevoCorreo && nuevoCorreo !== usuarioActual.email) {
-      await updateEmail(usuarioActual, nuevoCorreo);
+      try {
+        await updateEmail(usuarioActual, nuevoCorreo);
+      } catch (errEmail) {
+        if (errEmail.code === "auth/requires-recent-login") {
+          msgPerfil.textContent = "⚠️ Para cambiar tu correo, por seguridad debes cerrar sesión y volver a entrar.";
+          msgPerfil.style.color = "#f59e0b";
+          return;
+        }
+        throw errEmail;
+      }
     }
 
-    // 3. Respaldar en Firestore si está disponible
-    try {
-      await setDoc(doc(db, "usuarios", usuarioActual.uid), {
-        displayName: nuevoNombre,
-        email: nuevoCorreo
-      }, { merge: true });
-    } catch (_) {}
+    // 3. Respaldar en Firestore en segundo plano (SIN await que bloquee la UI)
+    setDoc(doc(db, "usuarios", usuarioActual.uid), {
+      displayName: nuevoNombre,
+      email: nuevoCorreo
+    }, { merge: true }).catch(() => {});
 
     refrescarDatosUsuarioUI();
     msgPerfil.textContent = "✅ ¡Datos de perfil guardados con éxito!";
@@ -691,7 +711,8 @@ formPerfil?.addEventListener("submit", async (e) => {
       cerrarModalPerfil();
     }, 1200);
   } catch (err) {
-    msgPerfil.textContent = traducir(err.code);
+    console.error("[Zenith] Error al guardar perfil:", err);
+    msgPerfil.textContent = traducir(err.code) || ("Error al guardar: " + err.message);
     msgPerfil.style.color = "#ef4444";
   }
 });
