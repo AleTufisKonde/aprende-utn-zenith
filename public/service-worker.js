@@ -1,4 +1,4 @@
-const VERSION = "v8";   // Versión actualizada Zenith: Feedback instantáneo en perfil y fotos sin bloqueos
+const VERSION = "v9";   // Versión actualizada Zenith: Sincronización garantizada y visualización de avatares sin bloqueo
 const CACHE   = "aprende-utn-zenith-" + VERSION;
 
 const ARCHIVOS = [
