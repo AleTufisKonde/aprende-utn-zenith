@@ -1,4 +1,4 @@
-const VERSION = "v6";   // Versión actualizada Zenith con Sync de Fotos y Logout Pro
+const VERSION = "v7";   // Versión actualizada Zenith: Corrección de derrames móviles y Sync de fotos cross-device
 const CACHE   = "aprende-utn-zenith-" + VERSION;
 
 const ARCHIVOS = [

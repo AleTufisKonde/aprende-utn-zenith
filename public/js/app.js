@@ -38,6 +38,8 @@ const txtPerfilUID         = document.getElementById("txtPerfilUID");
 const perfilAvatarContenedor= document.getElementById("perfilAvatarContenedor");
 const inputFotoPerfil      = document.getElementById("inputFotoPerfil");
 const btnDispararFoto      = document.getElementById("btnDispararFoto");
+const inputFotoUrl         = document.getElementById("inputFotoUrl");
+const btnGuardarFotoUrl    = document.getElementById("btnGuardarFotoUrl");
 const gridAvataresPreset   = document.getElementById("gridAvataresPreset");
 const msgPerfil            = document.getElementById("msgPerfil");
 
@@ -53,12 +55,16 @@ let usuarioActual = null;
 // AVATARES OFICIALES ZENITH (Sincronizan 100% entre PC y Móvil)
 // =====================================================================
 const AVATARES_PRESET = [
-  { id: "zenith-cyber",  nombre: "Cyber Zenith",  url: "https://api.dicebear.com/7.x/bottts/svg?seed=ZenithCyber&backgroundColor=070e1e" },
-  { id: "zenith-core",   nombre: "Núcleo Quantum", url: "https://api.dicebear.com/7.x/shapes/svg?seed=ZenithCore&backgroundColor=0a142c" },
-  { id: "zenith-falcon", nombre: "Halcón Neón",   url: "https://api.dicebear.com/7.x/identicon/svg?seed=ZenithFalcon&backgroundColor=070e1e" },
-  { id: "zenith-dev",    nombre: "Dev Pro",       url: "https://api.dicebear.com/7.x/bottts/svg?seed=ZenithDev&backgroundColor=0284c7" },
-  { id: "zenith-astro",  nombre: "Tech Astro",    url: "https://api.dicebear.com/7.x/identicon/svg?seed=ZenithAstro&backgroundColor=00a8ff" },
-  { id: "zenith-badge",  nombre: "Escudo Zenith", url: "https://ui-avatars.com/api/?name=Zenith&background=070e1e&color=00a8ff&bold=true" }
+  { id: "zenith-cyber",   nombre: "Cyber Zenith",  url: "https://api.dicebear.com/7.x/bottts/svg?seed=ZenithCyber&backgroundColor=070e1e" },
+  { id: "zenith-core",    nombre: "Núcleo Quantum", url: "https://api.dicebear.com/7.x/shapes/svg?seed=ZenithCore&backgroundColor=0a142c" },
+  { id: "zenith-falcon",  nombre: "Halcón Neón",   url: "https://api.dicebear.com/7.x/identicon/svg?seed=ZenithFalcon&backgroundColor=070e1e" },
+  { id: "zenith-dev",     nombre: "Dev Pro",       url: "https://api.dicebear.com/7.x/bottts/svg?seed=ZenithDev&backgroundColor=0284c7" },
+  { id: "zenith-astro",   nombre: "Tech Astro",    url: "https://api.dicebear.com/7.x/identicon/svg?seed=ZenithAstro&backgroundColor=00a8ff" },
+  { id: "zenith-badge",   nombre: "Escudo Zenith", url: "https://ui-avatars.com/api/?name=Zenith&background=070e1e&color=00a8ff&bold=true" },
+  { id: "zenith-matrix",  nombre: "Matrix Code",   url: "https://api.dicebear.com/7.x/shapes/svg?seed=MatrixZenith&backgroundColor=024870" },
+  { id: "zenith-robot",   nombre: "AI Vanguard",   url: "https://api.dicebear.com/7.x/bottts/svg?seed=Vanguard&backgroundColor=0369a1" },
+  { id: "zenith-utn",     nombre: "Orgullo UTN",   url: "https://ui-avatars.com/api/?name=UTN&background=0284c7&color=ffffff&bold=true" },
+  { id: "zenith-titan",   nombre: "Titán Tech",    url: "https://api.dicebear.com/7.x/identicon/svg?seed=TitanTech&backgroundColor=0d1b3e" }
 ];
 
 // =====================================================================
@@ -71,22 +77,37 @@ onAuthStateChanged(auth, async (usuario) => {
   }
 
   usuarioActual = usuario;
-  refrescarDatosUsuarioUI();
-  mostrarCursos();
-  inicializarSelectorAvatares();
 
-  // Intentar sincronizar foto desde Cloud Firestore (Cross-device Sync)
+  // 1. Forzar refresco del perfil desde los servidores de Google Firebase
   try {
-    const docRef = doc(db, "usuarios", usuario.uid);
+    await usuario.reload();
+    usuarioActual = auth.currentUser;
+  } catch (_) {}
+
+  // 2. Si Firebase Auth ya tiene photoURL sincronizada en la nube, actualizar localStorage
+  if (usuarioActual.photoURL) {
+    localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, usuarioActual.photoURL);
+  }
+
+  // 3. Consultar Cloud Firestore por si existe una foto guardada en base de datos
+  try {
+    const docRef = doc(db, "usuarios", usuarioActual.uid);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists() && docSnap.data().photoURL) {
       const nubeFoto = docSnap.data().photoURL;
-      localStorage.setItem(`zenith_photo_${usuario.uid}`, nubeFoto);
-      refrescarDatosUsuarioUI();
+      localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, nubeFoto);
+      // Si la foto en Firestore es una URL HTTP y Firebase Auth no la tiene, sincronizar Auth:
+      if (nubeFoto.startsWith("http") && usuarioActual.photoURL !== nubeFoto) {
+        updateProfile(usuarioActual, { photoURL: nubeFoto }).catch(() => {});
+      }
     }
   } catch (err) {
-    console.log("[Zenith] Firestore en modo local o sin colecciones aún:", err.message);
+    console.log("[Zenith] Firestore:", err.message);
   }
+
+  refrescarDatosUsuarioUI();
+  mostrarCursos();
+  inicializarSelectorAvatares();
 
   // Si hay botón de bienvenida
   if (btnPrimerCurso && cursos.length > 0) {
@@ -97,28 +118,32 @@ onAuthStateChanged(auth, async (usuario) => {
   }
 });
 
-function refrescarDatosUsuarioUI() {
+function refrescarDatosUsuarioUI(fotoParam) {
   if (!usuarioActual) return;
 
   const nombreMostrar = usuarioActual.displayName || usuarioActual.email.split("@")[0];
-  saludo.textContent = nombreMostrar;
+  if (saludo) saludo.textContent = nombreMostrar;
 
-  // Prioridad de foto: 1. LocalStorage sincronizado, 2. photoURL de Firebase Auth
-  const fotoGuardada = localStorage.getItem(`zenith_photo_${usuarioActual.uid}`) || usuarioActual.photoURL;
+  // Prioridad:
+  // 1. Foto explícita pasada por argumento
+  // 2. photoURL oficial en Firebase Auth (sincronizada en Google Cloud entre todos los dispositivos)
+  // 3. LocalStorage del dispositivo
+  const fotoEfectiva = fotoParam || usuarioActual.photoURL || localStorage.getItem(`zenith_photo_${usuarioActual.uid}`);
+  const inicial = (usuarioActual.displayName || usuarioActual.email || "Z").charAt(0).toUpperCase();
 
   if (avatarLetra) {
-    if (fotoGuardada) {
-      avatarLetra.innerHTML = `<img src="${fotoGuardada}" alt="Avatar">`;
+    if (fotoEfectiva) {
+      avatarLetra.innerHTML = `<img src="${fotoEfectiva}" alt="Avatar" onerror="this.onerror=null; this.parentElement.textContent='${inicial}';">`;
     } else {
-      avatarLetra.textContent = nombreMostrar.charAt(0).toUpperCase();
+      avatarLetra.textContent = inicial;
     }
   }
 
   if (perfilAvatarContenedor) {
-    if (fotoGuardada) {
-      perfilAvatarContenedor.innerHTML = `<img src="${fotoGuardada}" alt="Avatar">`;
+    if (fotoEfectiva) {
+      perfilAvatarContenedor.innerHTML = `<img src="${fotoEfectiva}" alt="Avatar" onerror="this.onerror=null; this.parentElement.textContent='${inicial}';">`;
     } else {
-      perfilAvatarContenedor.textContent = nombreMostrar.charAt(0).toUpperCase();
+      perfilAvatarContenedor.textContent = inicial;
     }
   }
 }
@@ -456,8 +481,11 @@ function inicializarSelectorAvatares() {
       msgPerfil.textContent = "Sincronizando avatar en la nube...";
       msgPerfil.style.color = "#00a8ff";
 
+      // Refrescar inmediatamente la interfaz con el nuevo avatar
+      refrescarDatosUsuarioUI(av.url);
+
       try {
-        // 1. Guardar en Firebase Auth nativo (Sincroniza con cualquier dispositivo)
+        // 1. Guardar en Firebase Auth nativo (Sincroniza con cualquier dispositivo vía Google)
         await updateProfile(usuarioActual, { photoURL: av.url });
         localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, av.url);
 
@@ -469,7 +497,6 @@ function inicializarSelectorAvatares() {
           }, { merge: true });
         } catch (_) {}
 
-        refrescarDatosUsuarioUI();
         msgPerfil.textContent = "✅ ¡Avatar sincronizado con éxito en tu cuenta!";
         msgPerfil.style.color = "#10b981";
       } catch (err) {
@@ -513,53 +540,112 @@ modalPerfil?.addEventListener("click", (e) => {
   if (e.target === modalPerfil) cerrarModalPerfil();
 });
 
-// Selección de foto de perfil personalizada (con compresión Canvas para sincronización)
+// Guardar foto mediante URL directa (compatible 100% con Firebase Auth en la nube)
+btnGuardarFotoUrl?.addEventListener("click", async () => {
+  const urlDirecta = inputFotoUrl?.value.trim();
+  if (!urlDirecta || (!urlDirecta.startsWith("http://") && !urlDirecta.startsWith("https://"))) {
+    msgPerfil.textContent = "Por favor ingresa un enlace válido (que comience con https://)";
+    msgPerfil.style.color = "#ef4444";
+    return;
+  }
+
+  msgPerfil.textContent = "Sincronizando foto en tu cuenta...";
+  msgPerfil.style.color = "#00a8ff";
+
+  refrescarDatosUsuarioUI(urlDirecta);
+
+  try {
+    await updateProfile(usuarioActual, { photoURL: urlDirecta });
+    localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, urlDirecta);
+
+    try {
+      await setDoc(doc(db, "usuarios", usuarioActual.uid), {
+        photoURL: urlDirecta,
+        displayName: usuarioActual.displayName || ""
+      }, { merge: true });
+    } catch (_) {}
+
+    msgPerfil.textContent = "✅ ¡Foto sincronizada en la nube con éxito!";
+    msgPerfil.style.color = "#10b981";
+    if (inputFotoUrl) inputFotoUrl.value = "";
+  } catch (err) {
+    msgPerfil.textContent = "Error al sincronizar foto: " + err.message;
+    msgPerfil.style.color = "#ef4444";
+  }
+});
+
+// Selección de foto de perfil personalizada (con compresión y subida a la nube)
 btnDispararFoto?.addEventListener("click", () => inputFotoPerfil?.click());
 
 inputFotoPerfil?.addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  if (file.size > 5 * 1024 * 1024) {
-    alert("Por favor selecciona una imagen menor a 5 MB.");
+  if (file.size > 8 * 1024 * 1024) {
+    alert("Por favor selecciona una imagen menor a 8 MB.");
     return;
   }
 
-  msgPerfil.textContent = "Optimizando y guardando imagen...";
+  msgPerfil.textContent = "Optimizando y subiendo foto a la nube...";
   msgPerfil.style.color = "#00a8ff";
 
   const reader = new FileReader();
   reader.onload = (event) => {
     const img = new Image();
     img.onload = async () => {
-      // Redimensionar a 128x128 píxeles con compresión JPEG ligera
+      // Redimensionar a 160x160 px con compresión JPEG ligera
       const canvas = document.createElement("canvas");
-      canvas.width = 128;
-      canvas.height = 128;
+      canvas.width = 160;
+      canvas.height = 160;
       const ctx = canvas.getContext("2d");
 
       // Centrar y recortar cuadrado
       const minDimension = Math.min(img.width, img.height);
       const sx = (img.width - minDimension) / 2;
       const sy = (img.height - minDimension) / 2;
-      ctx.drawImage(img, sx, sy, minDimension, minDimension, 0, 0, 128, 128);
+      ctx.drawImage(img, sx, sy, minDimension, minDimension, 0, 0, 160, 160);
 
-      const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.75);
+      const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.82);
 
-      // Guardar localmente
-      localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, compressedDataUrl);
-      refrescarDatosUsuarioUI();
+      // 1. Mostrar de inmediato localmente
+      refrescarDatosUsuarioUI(compressedDataUrl);
 
-      // Guardar en Cloud Firestore para sincronización entre dispositivos
+      // 2. Intentar subir a un servicio de hosting libre para obtener URL pública HTTP compatible con Firebase Auth
+      let urlPublica = null;
       try {
+        const base64Pure = compressedDataUrl.replace(/^data:image\/\w+;base64,/, "");
+        const fd = new FormData();
+        fd.append("image", base64Pure);
+        const resp = await fetch("https://api.imgbb.com/1/upload?key=2d92c735d481215b02664d93540e527f", {
+          method: "POST",
+          body: fd
+        });
+        const json = await resp.json();
+        if (json && json.success && json.data && json.data.url) {
+          urlPublica = json.data.url;
+        }
+      } catch (uploadErr) {
+        console.log("[Zenith] Subida externa opcional no disponible:", uploadErr.message);
+      }
+
+      const fotoFinal = urlPublica || compressedDataUrl;
+      localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, fotoFinal);
+
+      try {
+        if (urlPublica) {
+          // Si obtuvimos URL pública, Firebase Auth la guarda en servidores de Google y sincroniza con todos los dispositivos
+          await updateProfile(usuarioActual, { photoURL: urlPublica });
+        }
+
+        // Guardar también en Cloud Firestore para sincronización cross-device garantizada
         await setDoc(doc(db, "usuarios", usuarioActual.uid), {
-          photoURL: compressedDataUrl,
+          photoURL: fotoFinal,
           displayName: usuarioActual.displayName || ""
         }, { merge: true });
 
-        msgPerfil.textContent = "✅ Foto guardada y sincronizada en la nube.";
+        msgPerfil.textContent = "✅ ¡Foto guardada y sincronizada en la nube con éxito!";
         msgPerfil.style.color = "#10b981";
-      } catch (errCloud) {
+      } catch (errSync) {
         msgPerfil.textContent = "✅ Foto guardada en tu dispositivo actual.";
         msgPerfil.style.color = "#10b981";
       }
