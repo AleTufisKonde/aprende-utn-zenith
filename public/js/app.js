@@ -1,4 +1,4 @@
-import { auth, db, storage } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 import {
   onAuthStateChanged,
   signOut,
@@ -10,11 +10,6 @@ import {
   getDoc,
   setDoc
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-import {
-  ref as sRef,
-  uploadString,
-  getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
 import { cursos } from "./contenidos.js";
 import { traducir } from "./errores.js";
 
@@ -90,33 +85,50 @@ onAuthStateChanged(auth, async (usuario) => {
     usuarioActual = auth.currentUser;
   } catch (_) {}
 
-  // 2. Si Firebase Auth ya tiene photoURL sincronizada en la nube, actualizar localStorage
-  if (usuarioActual.photoURL) {
-    localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, usuarioActual.photoURL);
+  // 2. Determinar la mejor foto disponible (Auth primero, luego Firestore)
+  //    y mostrar la UI de inmediato con lo que ya se tiene
+  let fotoInicialAuth = usuarioActual.photoURL || null;
+
+  // Si Firebase Auth ya tiene una URL HTTP guardada, sincronizar localStorage
+  if (fotoInicialAuth && fotoInicialAuth.startsWith("http")) {
+    localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, fotoInicialAuth);
+    localStorage.setItem(`zenith_custom_photo_${usuarioActual.uid}`, fotoInicialAuth);
   }
 
-  // 3. Consultar Cloud Firestore con timeout de seguridad (para no bloquear si no está habilitado)
-  try {
-    const docRef = doc(db, "usuarios", usuarioActual.uid);
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 1500));
-    const docSnap = await Promise.race([getDoc(docRef), timeoutPromise]);
-    if (docSnap && docSnap.exists && docSnap.exists() && docSnap.data().photoURL) {
-      const nubeFoto = docSnap.data().photoURL;
-      localStorage.setItem(`zenith_custom_photo_${usuarioActual.uid}`, nubeFoto);
-      localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, nubeFoto);
-      // Si la foto en Firestore es una URL HTTP y Firebase Auth no la tiene, sincronizar Auth:
-      if (nubeFoto.startsWith("http") && usuarioActual.photoURL !== nubeFoto) {
-        updateProfile(usuarioActual, { photoURL: nubeFoto }).catch(() => {});
-      }
-      refrescarDatosUsuarioUI(nubeFoto);
-    }
-  } catch (_) {
-    // Si Firestore no responde o no está inicializado, continuamos normalmente con Firebase Auth y LocalStorage
-  }
-
-  refrescarDatosUsuarioUI();
+  // Renderizar UI inmediatamente con lo que tiene Auth (no esperar Firestore)
+  refrescarDatosUsuarioUI(fotoInicialAuth || undefined);
   mostrarCursos();
   inicializarSelectorAvatares();
+
+  // 3. Consultar Cloud Firestore en segundo plano (timeout más generoso para móviles lentos)
+  //    Firestore es la fuente de verdad para fotos subidas desde el dispositivo
+  try {
+    const docRef = doc(db, "usuarios", usuarioActual.uid);
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000));
+    const docSnap = await Promise.race([getDoc(docRef), timeoutPromise]);
+
+    if (docSnap && docSnap.exists && docSnap.exists()) {
+      const datos = docSnap.data();
+      const nubeFoto = datos.photoURL || null;
+
+      if (nubeFoto && nubeFoto.startsWith("http")) {
+        // Guardar en localStorage para offline
+        localStorage.setItem(`zenith_custom_photo_${usuarioActual.uid}`, nubeFoto);
+        localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, nubeFoto);
+
+        // Sincronizar Firebase Auth si tiene una foto distinta o no tiene foto
+        if (usuarioActual.photoURL !== nubeFoto) {
+          updateProfile(usuarioActual, { photoURL: nubeFoto }).catch(() => {});
+        }
+
+        // Actualizar UI con la foto de la nube (fuente de verdad definitiva)
+        refrescarDatosUsuarioUI(nubeFoto);
+        inicializarSelectorAvatares();
+      }
+    }
+  } catch (_) {
+    // Si Firestore no responde, la UI ya muestra la foto de Firebase Auth
+  }
 
   // Si hay botón de bienvenida
   if (btnPrimerCurso && cursos.length > 0) {
@@ -133,17 +145,16 @@ function refrescarDatosUsuarioUI(fotoParam) {
   const nombreMostrar = usuarioActual.displayName || usuarioActual.email.split("@")[0];
   if (saludo) saludo.textContent = nombreMostrar;
 
-  // Prioridad:
-  // 1. Foto explícita pasada por argumento
-  // 2. Foto en edición activa
-  // 3. Foto personalizada guardada en este dispositivo
-  // 4. photoURL oficial en Firebase Auth
-  // 5. LocalStorage general del dispositivo
-  const fotoEfectiva = fotoParam ||
-                       fotoEnEdicion ||
-                       localStorage.getItem(`zenith_custom_photo_${usuarioActual.uid}`) ||
-                       usuarioActual.photoURL ||
-                       localStorage.getItem(`zenith_photo_${usuarioActual.uid}`);
+  // Prioridad de foto (de mayor a menor confiabilidad entre dispositivos):
+  // 1. Foto explícita pasada por argumento (viene de Firestore/nube = fuente de verdad)
+  // 2. Foto en edición activa (seleccionada en esta sesión)
+  // 3. photoURL oficial en Firebase Auth (sincronizado en la nube por Google)
+  // 4. localStorage solo como caché offline (no tiene prioridad sobre la nube)
+  const fotoNube = fotoParam || usuarioActual.photoURL || null;
+  const fotoLocal = localStorage.getItem(`zenith_custom_photo_${usuarioActual.uid}`) ||
+                    localStorage.getItem(`zenith_photo_${usuarioActual.uid}`);
+  const fotoEfectiva = fotoNube || fotoEnEdicion || fotoLocal;
+
   const inicial = (usuarioActual.displayName || usuarioActual.email || "Z").charAt(0).toUpperCase();
 
   if (avatarLetra) {
@@ -593,7 +604,7 @@ btnGuardarFotoUrl?.addEventListener("click", async () => {
   }
 });
 
-// Selección de foto de perfil personalizada (con compresión y subida a la nube)
+// Selección de foto de perfil personalizada (con compresión y subida a imgbb)
 btnDispararFoto?.addEventListener("click", () => inputFotoPerfil?.click());
 
 inputFotoPerfil?.addEventListener("change", (e) => {
@@ -621,7 +632,7 @@ inputFotoPerfil?.addEventListener("change", (e) => {
     };
     img.onload = async () => {
       try {
-        // Redimensionar a 160x160 px con compresión JPEG ligera
+        // Redimensionar a 160x160 px con compresión JPEG
         const canvas = document.createElement("canvas");
         canvas.width = 160;
         canvas.height = 160;
@@ -635,34 +646,16 @@ inputFotoPerfil?.addEventListener("change", (e) => {
 
         const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.82);
 
-        // 1. Mostrar de inmediato localmente y marcar como foto activa
-        fotoEnEdicion = compressedDataUrl;
-        localStorage.setItem(`zenith_custom_photo_${usuarioActual.uid}`, compressedDataUrl);
-        localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, compressedDataUrl);
+        // Mostrar preview inmediato localmente mientras sube
         refrescarDatosUsuarioUI(compressedDataUrl);
+        msgPerfil.textContent = "⏳ Subiendo foto a la nube, por favor espera...";
+        msgPerfil.style.color = "#00a8ff";
 
-        // 2. Intentar subir a Firebase Storage nativo de Google si está activo
-        try {
-          const storageRef = sRef(storage, `avatares/${usuarioActual.uid}.jpg`);
-          uploadString(storageRef, compressedDataUrl, 'data_url')
-            .then(snap => getDownloadURL(snap.ref))
-            .then(dlUrl => {
-              fotoEnEdicion = dlUrl;
-              updateProfile(usuarioActual, { photoURL: dlUrl }).catch(() => {});
-              localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, dlUrl);
-              setDoc(doc(db, "usuarios", usuarioActual.uid), {
-                photoURL: dlUrl,
-                displayName: usuarioActual.displayName || ""
-              }, { merge: true }).catch(() => {});
-            })
-            .catch(errS => console.log("[Zenith] Storage omitido:", errS.message));
-        } catch (_) {}
-
-        // 3. Intentar subir a servicio hosting libre con timeout estricto de 3.5 segundos
+        // Subir a imgbb (servicio gratuito, genera URL pública permanente)
         let urlPublica = null;
         try {
           const controller = new AbortController();
-          const tid = setTimeout(() => controller.abort(), 3500);
+          const tid = setTimeout(() => controller.abort(), 10000);
           const base64Pure = compressedDataUrl.replace(/^data:image\/\w+;base64,/, "");
           const fd = new FormData();
           fd.append("image", base64Pure);
@@ -676,23 +669,33 @@ inputFotoPerfil?.addEventListener("change", (e) => {
             const json = await resp.json();
             if (json && json.success && json.data && json.data.url) {
               urlPublica = json.data.url;
-              fotoEnEdicion = urlPublica;
-              await updateProfile(usuarioActual, { photoURL: urlPublica }).catch(() => {});
-              localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, urlPublica);
             }
           }
         } catch (_) {}
 
-        const fotoFinal = urlPublica || compressedDataUrl;
+        if (urlPublica) {
+          // URL pública obtenida: guardar en Auth + Firestore + localStorage
+          fotoEnEdicion = urlPublica;
+          localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, urlPublica);
+          localStorage.setItem(`zenith_custom_photo_${usuarioActual.uid}`, urlPublica);
 
-        // Guardar en Cloud Firestore en segundo plano (sin await que bloquee la UI)
-        setDoc(doc(db, "usuarios", usuarioActual.uid), {
-          photoURL: fotoFinal,
-          displayName: usuarioActual.displayName || ""
-        }, { merge: true }).catch(() => {});
+          await updateProfile(usuarioActual, { photoURL: urlPublica }).catch(() => {});
+          await setDoc(doc(db, "usuarios", usuarioActual.uid), {
+            photoURL: urlPublica,
+            displayName: usuarioActual.displayName || ""
+          }, { merge: true }).catch(() => {});
 
-        msgPerfil.textContent = "✅ ¡Foto seleccionada y lista! Haz clic en 'Guardar cambios de perfil' abajo para confirmar.";
-        msgPerfil.style.color = "#10b981";
+          refrescarDatosUsuarioUI(urlPublica);
+          msgPerfil.textContent = "✅ ¡Foto subida y sincronizada en todos tus dispositivos!";
+          msgPerfil.style.color = "#10b981";
+        } else {
+          // imgbb no respondió: guardar solo localmente sin Firestore
+          fotoEnEdicion = compressedDataUrl;
+          localStorage.setItem(`zenith_custom_photo_${usuarioActual.uid}`, compressedDataUrl);
+          localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, compressedDataUrl);
+          msgPerfil.textContent = "⚠️ No se pudo conectar al servidor de imágenes. La foto solo está en este dispositivo. Intenta con un Avatar o pega una URL de imagen para sincronizar en todos tus dispositivos.";
+          msgPerfil.style.color = "#f59e0b";
+        }
       } catch (errProceso) {
         console.error("[Zenith] Error procesando imagen:", errProceso);
         msgPerfil.textContent = "Error al procesar la foto: " + errProceso.message;
@@ -718,6 +721,7 @@ formPerfil?.addEventListener("submit", async (e) => {
     if (nuevoNombre && nuevoNombre !== usuarioActual.displayName) {
       perfilUpdates.displayName = nuevoNombre;
     }
+    // Solo guardar foto en Firebase Auth si es una URL pública (no base64)
     if (fotoEnEdicion && fotoEnEdicion.startsWith("http")) {
       perfilUpdates.photoURL = fotoEnEdicion;
     }
@@ -740,20 +744,21 @@ formPerfil?.addEventListener("submit", async (e) => {
       }
     }
 
-    // Respaldar en Firestore en segundo plano (SIN await que bloquee la UI)
+    // Respaldar en Firestore: SOLO guardar URL pública, nunca base64
     const datosFirestore = {
       displayName: nuevoNombre,
       email: nuevoCorreo
     };
-    if (fotoEnEdicion) {
+    if (fotoEnEdicion && fotoEnEdicion.startsWith("http")) {
       datosFirestore.photoURL = fotoEnEdicion;
     }
-    setDoc(doc(db, "usuarios", usuarioActual.uid), datosFirestore, { merge: true }).catch(() => {});
+    await setDoc(doc(db, "usuarios", usuarioActual.uid), datosFirestore, { merge: true }).catch(() => {});
 
     // Refrescar inmediatamente la interfaz con la foto seleccionada
-    refrescarDatosUsuarioUI(fotoEnEdicion);
+    const fotoMostrar = fotoEnEdicion && fotoEnEdicion.startsWith("http") ? fotoEnEdicion : undefined;
+    refrescarDatosUsuarioUI(fotoMostrar);
 
-    msgPerfil.textContent = "✅ ¡Datos de perfil y foto guardados con éxito!";
+    msgPerfil.textContent = "✅ ¡Datos de perfil guardados con éxito!";
     msgPerfil.style.color = "#10b981";
 
     setTimeout(() => {
