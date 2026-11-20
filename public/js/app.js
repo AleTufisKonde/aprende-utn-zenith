@@ -116,6 +116,9 @@ onAuthStateChanged(auth, async (usuario) => {
         localStorage.setItem(`zenith_custom_photo_${usuarioActual.uid}`, nubeFoto);
         localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, nubeFoto);
 
+        // Mantener fotoEnEdicion sincronizada con la nube para toda la sesión
+        fotoEnEdicion = nubeFoto;
+
         // Sincronizar Firebase Auth solo si es URL pública (Auth no acepta base64)
         if (nubeFoto.startsWith("http") && usuarioActual.photoURL !== nubeFoto) {
           updateProfile(usuarioActual, { photoURL: nubeFoto }).catch(() => {});
@@ -549,7 +552,13 @@ function abrirModalPerfil() {
   txtPerfilUID.textContent = usuarioActual.uid || "N/A";
   msgPerfil.textContent = "";
 
-  refrescarDatosUsuarioUI();
+  // Obtener la foto actual con todas las fuentes disponibles (nube + local)
+  const fotoActual = fotoEnEdicion ||
+                     usuarioActual.photoURL ||
+                     localStorage.getItem(`zenith_custom_photo_${usuarioActual.uid}`) ||
+                     localStorage.getItem(`zenith_photo_${usuarioActual.uid}`);
+
+  refrescarDatosUsuarioUI(fotoActual || undefined);
   inicializarSelectorAvatares();
   modalPerfil.classList.add("abierto");
 }
