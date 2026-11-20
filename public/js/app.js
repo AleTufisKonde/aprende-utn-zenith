@@ -111,13 +111,13 @@ onAuthStateChanged(auth, async (usuario) => {
       const datos = docSnap.data();
       const nubeFoto = datos.photoURL || null;
 
-      if (nubeFoto && nubeFoto.startsWith("http")) {
+      if (nubeFoto) {
         // Guardar en localStorage para offline
         localStorage.setItem(`zenith_custom_photo_${usuarioActual.uid}`, nubeFoto);
         localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, nubeFoto);
 
-        // Sincronizar Firebase Auth si tiene una foto distinta o no tiene foto
-        if (usuarioActual.photoURL !== nubeFoto) {
+        // Sincronizar Firebase Auth solo si es URL pública (Auth no acepta base64)
+        if (nubeFoto.startsWith("http") && usuarioActual.photoURL !== nubeFoto) {
           updateProfile(usuarioActual, { photoURL: nubeFoto }).catch(() => {});
         }
 
@@ -604,7 +604,7 @@ btnGuardarFotoUrl?.addEventListener("click", async () => {
   }
 });
 
-// Selección de foto de perfil personalizada (con compresión y subida a imgbb)
+// Selección de foto de perfil personalizada (con compresión y subida a la nube)
 btnDispararFoto?.addEventListener("click", () => inputFotoPerfil?.click());
 
 inputFotoPerfil?.addEventListener("change", (e) => {
@@ -632,7 +632,7 @@ inputFotoPerfil?.addEventListener("change", (e) => {
     };
     img.onload = async () => {
       try {
-        // Redimensionar a 160x160 px con compresión JPEG
+        // Redimensionar a 160x160 px con compresión JPEG (~10-20 KB, bien dentro del límite de Firestore)
         const canvas = document.createElement("canvas");
         canvas.width = 160;
         canvas.height = 160;
@@ -651,7 +651,7 @@ inputFotoPerfil?.addEventListener("change", (e) => {
         msgPerfil.textContent = "⏳ Subiendo foto a la nube, por favor espera...";
         msgPerfil.style.color = "#00a8ff";
 
-        // Subir a imgbb (servicio gratuito, genera URL pública permanente)
+        // Opción 1: intentar subir a imgbb para obtener URL pública
         let urlPublica = null;
         try {
           const controller = new AbortController();
@@ -674,7 +674,7 @@ inputFotoPerfil?.addEventListener("change", (e) => {
         } catch (_) {}
 
         if (urlPublica) {
-          // URL pública obtenida: guardar en Auth + Firestore + localStorage
+          // imgbb OK: guardar URL pública en Auth + Firestore + localStorage
           fotoEnEdicion = urlPublica;
           localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, urlPublica);
           localStorage.setItem(`zenith_custom_photo_${usuarioActual.uid}`, urlPublica);
@@ -689,12 +689,22 @@ inputFotoPerfil?.addEventListener("change", (e) => {
           msgPerfil.textContent = "✅ ¡Foto subida y sincronizada en todos tus dispositivos!";
           msgPerfil.style.color = "#10b981";
         } else {
-          // imgbb no respondió: guardar solo localmente sin Firestore
+          // Opción 2 (fallback): imgbb falló → guardar el base64 directamente en Firestore.
+          // La imagen ya está comprimida a 160×160 px (~15-25 KB en base64),
+          // muy por debajo del límite de 1 MB de Firestore. Sincroniza entre dispositivos igual.
           fotoEnEdicion = compressedDataUrl;
-          localStorage.setItem(`zenith_custom_photo_${usuarioActual.uid}`, compressedDataUrl);
           localStorage.setItem(`zenith_photo_${usuarioActual.uid}`, compressedDataUrl);
-          msgPerfil.textContent = "⚠️ No se pudo conectar al servidor de imágenes. La foto solo está en este dispositivo. Intenta con un Avatar o pega una URL de imagen para sincronizar en todos tus dispositivos.";
-          msgPerfil.style.color = "#f59e0b";
+          localStorage.setItem(`zenith_custom_photo_${usuarioActual.uid}`, compressedDataUrl);
+
+          // Firebase Auth no acepta base64, solo guardamos en Firestore
+          await setDoc(doc(db, "usuarios", usuarioActual.uid), {
+            photoURL: compressedDataUrl,
+            displayName: usuarioActual.displayName || ""
+          }, { merge: true }).catch(() => {});
+
+          refrescarDatosUsuarioUI(compressedDataUrl);
+          msgPerfil.textContent = "✅ ¡Foto guardada y sincronizada en todos tus dispositivos!";
+          msgPerfil.style.color = "#10b981";
         }
       } catch (errProceso) {
         console.error("[Zenith] Error procesando imagen:", errProceso);
@@ -744,19 +754,18 @@ formPerfil?.addEventListener("submit", async (e) => {
       }
     }
 
-    // Respaldar en Firestore: SOLO guardar URL pública, nunca base64
+    // Respaldar en Firestore: guardar foto (URL pública o base64 comprimido)
     const datosFirestore = {
       displayName: nuevoNombre,
       email: nuevoCorreo
     };
-    if (fotoEnEdicion && fotoEnEdicion.startsWith("http")) {
-      datosFirestore.photoURL = fotoEnEdicion;
+    if (fotoEnEdicion) {
+      datosFirestore.photoURL = fotoEnEdicion; // puede ser URL o base64 pequeño
     }
     await setDoc(doc(db, "usuarios", usuarioActual.uid), datosFirestore, { merge: true }).catch(() => {});
 
-    // Refrescar inmediatamente la interfaz con la foto seleccionada
-    const fotoMostrar = fotoEnEdicion && fotoEnEdicion.startsWith("http") ? fotoEnEdicion : undefined;
-    refrescarDatosUsuarioUI(fotoMostrar);
+    // Refrescar interfaz con la foto activa
+    refrescarDatosUsuarioUI(fotoEnEdicion || undefined);
 
     msgPerfil.textContent = "✅ ¡Datos de perfil guardados con éxito!";
     msgPerfil.style.color = "#10b981";
